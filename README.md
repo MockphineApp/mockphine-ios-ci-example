@@ -16,7 +16,7 @@ The recording comes from a run of this workflow on GitHub's runner, cut down to 
 
 The same clip as a video is [docs/ui-tests.mp4](docs/ui-tests.mp4).
 
-On 2026-11-21 both jobs passed on GitHub's `macos-26` runner with Xcode 26.6 and an iPhone 17 simulator on iOS 26.5. A job takes eight to nine minutes.
+On 2026-11-21 both jobs passed on GitHub's `macos-26` runner with Xcode 26.6 and an iPhone 17 simulator on iOS 26.5. A job takes eight to ten minutes.
 
 ## How it works
 
