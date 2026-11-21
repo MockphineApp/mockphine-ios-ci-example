@@ -1,0 +1,6 @@
+*.xcodeproj
+*.xcworkspace
+App/Info.plist
+Derived/
+build/
+.DS_Store
