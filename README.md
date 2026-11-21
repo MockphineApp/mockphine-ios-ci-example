@@ -160,9 +160,17 @@ SERVER_ID="ec372f8c-2148-4b98-8623-3e6d4b09101a"
 BASE_URL="http://127.0.0.1:47861"
 export DO_NOT_TRACK=1
 
-# Start the mock in the background and wait until it is running.
+# Start the mock in the background and wait until this process is the running server.
 "$MOCKPHINE" server start --workspace "$WORKSPACE" --server-id "$SERVER_ID" > build/mock.log 2>&1 &
-until "$MOCKPHINE" server status --workspace "$WORKSPACE" --server-id "$SERVER_ID" | grep -q '^running'; do
+MOCK_PID=$!
+tries=0
+until "$MOCKPHINE" server status --workspace "$WORKSPACE" --server-id "$SERVER_ID" \
+  | grep -q "^running.*pid=$MOCK_PID[[:space:]]"; do
+  tries=$((tries + 1))
+  if ! kill -0 "$MOCK_PID" 2>/dev/null || [ "$tries" -gt 50 ]; then
+    cat build/mock.log
+    exit 1
+  fi
   sleep 0.2
 done
 
@@ -181,9 +189,10 @@ STATUS=$?
 exit "$STATUS"
 ```
 
-Four details matter:
+Five details matter:
 
 - **The script waits on `server status`.** Polling the status sends no request to the mock, so the Request Log holds your app's calls and nothing else.
+- **It accepts only the server it started.** The status line must carry the process ID of the script's own `server start`. When that server already runs elsewhere, for example in another terminal on your Mac, or the port is taken, the script prints the mock's log and exits 1. It never stops a server it did not start.
 - **It builds before it tests.** A build failure and a test failure then show up as different steps in the log, and the recording covers the tests only.
 - **It always stops the mock** and returns the tests' status, so the job fails when a test fails.
 - **`DO_NOT_TRACK=1`** turns the CLI's analytics off for the job.
@@ -282,7 +291,7 @@ Add `RECORD_VIDEO=1` to record the simulator to `build/ui-tests.mp4`, and `DEVIC
 
 | Symptom | Likely cause |
 | --- | --- |
-| "The mock server did not start" | Another process holds the port, or the server ID does not match the document. The script prints the mock's log. |
+| "The mock server did not start" | The same server is already running, another process holds the port, or the server ID does not match the document. The script prints the mock's log, which names the cause. |
 | Every test fails on its first wait | The app did not get the mock's address. Check that the test sets `API_BASE_URL` and that the script sets `TEST_RUNNER_MOCK_BASE_URL`. |
 | The app shows a network error | The app's transport security settings block plain HTTP. Add `NSAllowsLocalNetworking` to the debug Info.plist. |
 | A call gets 404 from the mock | No endpoint matched. Open the same document in Mockphine, run the server, repeat the call, and read the Diagnosis in the Request Inspector. |

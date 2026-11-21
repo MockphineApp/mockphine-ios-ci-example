@@ -22,11 +22,16 @@ if [ -z "$DEVICE_ID" ]; then
   exit 1
 fi
 
+# Accept only the server this script started: `server status` must report the
+# process ID of the background process. If the server already runs elsewhere, or
+# the port is taken, `server start` exits and the script stops here.
 "$MOCKPHINE" server start --workspace "$WORKSPACE" --server-id "$SERVER_ID" > build/mock.log 2>&1 &
+MOCK_PID=$!
 tries=0
-until "$MOCKPHINE" server status --workspace "$WORKSPACE" --server-id "$SERVER_ID" | grep -q '^running'; do
+until "$MOCKPHINE" server status --workspace "$WORKSPACE" --server-id "$SERVER_ID" \
+  | grep -q "^running.*pid=$MOCK_PID[[:space:]]"; do
   tries=$((tries + 1))
-  if [ "$tries" -gt 50 ]; then
+  if ! kill -0 "$MOCK_PID" 2>/dev/null || [ "$tries" -gt 50 ]; then
     echo "The mock server did not start:"
     cat build/mock.log
     exit 1
@@ -57,6 +62,7 @@ if [ "${RECORD_VIDEO:-0}" = "1" ]; then
 fi
 
 echo "Running UI tests on simulator $DEVICE_ID"
+rm -rf build/UITests.xcresult
 TEST_RUNNER_MOCK_BASE_URL="$BASE_URL" xcodebuild test-without-building \
   -project ShopSample.xcodeproj -scheme ShopSample \
   -destination "id=$DEVICE_ID" \
