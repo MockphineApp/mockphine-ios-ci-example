@@ -62,6 +62,7 @@ jobs:
           path: |
             build/mock-requests.txt
             build/mock.log
-            build/xcodebuild.log
+            build/xcodebuild-build.log
+            build/xcodebuild-test.log
             build/ui-tests.mp4
           if-no-files-found: warn

@@ -35,6 +35,19 @@ until "$MOCKPHINE" server status --workspace "$WORKSPACE" --server-id "$SERVER_I
 done
 echo "Mock server is running at $BASE_URL"
 
+echo "Building the app and its UI tests"
+xcodebuild build-for-testing \
+  -project ShopSample.xcodeproj -scheme ShopSample \
+  -destination "id=$DEVICE_ID" \
+  -derivedDataPath build/DerivedData > build/xcodebuild-build.log 2>&1
+BUILD_STATUS=$?
+if [ "$BUILD_STATUS" -ne 0 ]; then
+  echo "The build failed with status $BUILD_STATUS. Last lines of build/xcodebuild-build.log:"
+  tail -40 build/xcodebuild-build.log
+  "$MOCKPHINE" server stop --workspace "$WORKSPACE" --server-id "$SERVER_ID"
+  exit "$BUILD_STATUS"
+fi
+
 RECORDER=""
 if [ "${RECORD_VIDEO:-0}" = "1" ]; then
   xcrun simctl boot "$DEVICE_ID" 2>/dev/null
@@ -44,17 +57,17 @@ if [ "${RECORD_VIDEO:-0}" = "1" ]; then
 fi
 
 echo "Running UI tests on simulator $DEVICE_ID"
-TEST_RUNNER_MOCK_BASE_URL="$BASE_URL" xcodebuild test \
+TEST_RUNNER_MOCK_BASE_URL="$BASE_URL" xcodebuild test-without-building \
   -project ShopSample.xcodeproj -scheme ShopSample \
   -destination "id=$DEVICE_ID" \
   -parallel-testing-enabled NO \
   -derivedDataPath build/DerivedData \
-  -resultBundlePath build/UITests.xcresult > build/xcodebuild.log 2>&1
+  -resultBundlePath build/UITests.xcresult > build/xcodebuild-test.log 2>&1
 STATUS=$?
-grep -E "Test Case .* (passed|failed)|Executed [0-9]+ tests|\*\* TEST" build/xcodebuild.log | sort -u
+grep -E "Test Case .* (passed|failed)|Executed [0-9]+ tests|\*\* TEST" build/xcodebuild-test.log | sort -u
 if [ "$STATUS" -ne 0 ]; then
-  echo "xcodebuild failed with status $STATUS. Last lines of build/xcodebuild.log:"
-  tail -40 build/xcodebuild.log
+  echo "The UI tests failed with status $STATUS. Last lines of build/xcodebuild-test.log:"
+  tail -40 build/xcodebuild-test.log
 fi
 
 if [ -n "$RECORDER" ]; then

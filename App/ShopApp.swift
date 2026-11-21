@@ -10,6 +10,7 @@ struct ShopApp: App {
 struct Product: Decodable, Identifiable {
   let id: String
   let name: String
+  let price: Int
 }
 
 struct ProductList: Decodable {
@@ -22,8 +23,8 @@ final class ShopModel {
   var products: [Product] = []
   var status = "Loading"
 
-  private let baseURL: URL
-  private let mockState: String?
+  let baseURL: URL
+  let mockState: String?
 
   init() {
     let environment = ProcessInfo.processInfo.environment
@@ -69,21 +70,41 @@ struct ShopView: View {
   var body: some View {
     NavigationStack {
       List(model.products) { product in
-        Text(product.name)
+        LabeledContent(product.name, value: (Double(product.price) / 100).formatted(.currency(code: "USD")))
       }
       .navigationTitle("Shop")
       .safeAreaInset(edge: .bottom) {
         VStack(spacing: 12) {
           Text(model.status)
+            .font(.title2.bold())
+            .foregroundStyle(statusColor)
             .accessibilityIdentifier("status")
           Button("Buy") {
             Task { await model.buy() }
           }
+          .buttonStyle(.borderedProminent)
+          .controlSize(.large)
           .accessibilityIdentifier("buy")
+          VStack(spacing: 2) {
+            Text("API: \(model.baseURL.absoluteString)")
+            if let mockState = model.mockState {
+              Text("x-mock-state: \(mockState)")
+            }
+          }
+          .font(.footnote.monospaced())
+          .foregroundStyle(.secondary)
         }
         .padding()
       }
     }
     .task { await model.load() }
+  }
+
+  private var statusColor: Color {
+    switch model.status {
+    case "Order placed": .green
+    case "Payment declined", "Network error", "Could not load products": .red
+    default: .primary
+    }
   }
 }
