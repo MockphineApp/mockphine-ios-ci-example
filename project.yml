@@ -1,0 +1,40 @@
+name: ShopSample
+options:
+  bundleIdPrefix: com.mockphine.example
+  deploymentTarget:
+    iOS: "18.0"
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+targets:
+  ShopSample:
+    type: application
+    platform: iOS
+    sources: [App]
+    info:
+      path: App/Info.plist
+      properties:
+        UILaunchScreen: {}
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.mockphine.example.shop
+  ShopSampleUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [UITests]
+    dependencies:
+      - target: ShopSample
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.mockphine.example.shop.uitests
+schemes:
+  ShopSample:
+    build:
+      targets:
+        ShopSample: all
+        ShopSampleUITests: [test]
+    test:
+      targets: [ShopSampleUITests]

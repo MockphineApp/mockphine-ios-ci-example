@@ -1,0 +1,67 @@
+name: UI tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  ui-tests:
+    name: UI tests (${{ matrix.generator }})
+    runs-on: macos-26
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        generator: [xcodegen, tuist]
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install the Mockphine CLI
+        run: |
+          unzip -q tools/mockphine-cli-macos-arm64.zip -d "$RUNNER_TEMP/mockphine"
+          echo "MOCKPHINE=$RUNNER_TEMP/mockphine/mockphine" >> "$GITHUB_ENV"
+          "$RUNNER_TEMP/mockphine/mockphine" workspace inspect mocks/Shop.mockphine
+
+      - name: Generate the project with XcodeGen
+        if: matrix.generator == 'xcodegen'
+        run: |
+          command -v xcodegen > /dev/null || brew install xcodegen
+          xcodegen generate
+
+      - name: Install Tuist
+        if: matrix.generator == 'tuist'
+        uses: jdx/mise-action@v5
+
+      - name: Generate the project with Tuist
+        if: matrix.generator == 'tuist'
+        run: tuist generate --no-open
+
+      - name: Run UI tests against the mock
+        env:
+          RECORD_VIDEO: "1"
+        run: scripts/run-ui-tests.sh
+
+      - name: Show what the mock answered
+        if: always()
+        run: |
+          {
+            echo "### Requests the mock answered"
+            echo
+            echo '```text'
+            cat build/mock-requests.txt 2>/dev/null || echo "No Request Log was saved."
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload the Request Log, logs, and video
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ui-tests-${{ matrix.generator }}
+          path: |
+            build/mock-requests.txt
+            build/mock.log
+            build/xcodebuild.log
+            build/ui-tests.mp4
+          if-no-files-found: warn

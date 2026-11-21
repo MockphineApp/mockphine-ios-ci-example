@@ -1,0 +1,209 @@
+{
+  "formatVersion" : 1,
+  "workspace" : {
+    "id" : "bc98c18a-2e6f-449c-8689-648be024122c",
+    "name" : "Shop",
+    "servers" : [
+      {
+        "bindAddress" : "127.0.0.1",
+        "endpoints" : [
+          {
+            "conditions" : {
+              "body" : [
+
+              ],
+              "headers" : [
+
+              ],
+              "query" : {
+                "exactValue" : "",
+                "mode" : "none",
+                "pairs" : [
+
+                ]
+              }
+            },
+            "id" : "23835c77-12ab-42c3-b2b1-6d6a2451ada7",
+            "method" : "POST",
+            "mode" : "mock",
+            "name" : "Create order",
+            "response" : {
+              "body" : "{\n  \"id\" : \"o1\",\n  \"status\" : \"pending\",\n  \"total\" : 2400\n}",
+              "headers" : [
+                {
+                  "id" : "d4fded8d-06bb-4b6b-a0eb-7ea0ed54dffd",
+                  "name" : "content-type",
+                  "value" : "application/json"
+                }
+              ],
+              "statusCode" : 201
+            },
+            "responseCases" : [
+              {
+                "conditions" : {
+                  "body" : [
+
+                  ],
+                  "headers" : [
+                    {
+                      "expectedValue" : "declined",
+                      "id" : "6f1c1b3a-0000-4000-8000-0000000000a1",
+                      "name" : "x-mock-state",
+                      "operation" : "exact"
+                    }
+                  ],
+                  "query" : {
+                    "exactValue" : "",
+                    "mode" : "none",
+                    "pairs" : [
+
+                    ]
+                  }
+                },
+                "id" : "4039e521-38e1-49eb-a3a7-57ecd7c63eb9",
+                "name" : "Card declined",
+                "response" : {
+                  "body" : "{\"error\":\"card_declined\"}",
+                  "headers" : [
+                    {
+                      "id" : "edd91f56-1ce2-4287-b6db-972f5312a625",
+                      "name" : "content-type",
+                      "value" : "application/json"
+                    }
+                  ],
+                  "statusCode" : 402
+                }
+              }
+            ],
+            "route" : {
+              "kind" : "exact",
+              "value" : "/orders"
+            }
+          },
+          {
+            "conditions" : {
+              "body" : [
+
+              ],
+              "headers" : [
+
+              ],
+              "query" : {
+                "exactValue" : "",
+                "mode" : "none",
+                "pairs" : [
+
+                ]
+              }
+            },
+            "id" : "09ce08df-fa26-424c-8d3e-95dca05666aa",
+            "method" : "POST",
+            "mode" : "mock",
+            "name" : "Confirm payment",
+            "response" : {
+              "body" : "{\n  \"id\" : \"o1\",\n  \"status\" : \"paid\"\n}",
+              "headers" : [
+                {
+                  "id" : "66038186-515c-4734-9d34-9f835da2b672",
+                  "name" : "content-type",
+                  "value" : "application/json"
+                }
+              ],
+              "statusCode" : 200
+            },
+            "responseCases" : [
+
+            ],
+            "route" : {
+              "kind" : "parameter",
+              "value" : "/payments/:id/confirm"
+            }
+          },
+          {
+            "conditions" : {
+              "body" : [
+
+              ],
+              "headers" : [
+
+              ],
+              "query" : {
+                "exactValue" : "",
+                "mode" : "none",
+                "pairs" : [
+
+                ]
+              }
+            },
+            "id" : "011fd788-4784-4875-aa03-b9afecd07a30",
+            "method" : "GET",
+            "mode" : "mock",
+            "name" : "List products",
+            "response" : {
+              "body" : "{\n  \"items\" : [\n    {\n      \"id\" : \"p1\",\n      \"name\" : \"Espresso cup\",\n      \"price\" : 1200\n    }\n  ]\n}",
+              "headers" : [
+                {
+                  "id" : "5dfc96d4-d16f-42e6-91df-deeaefe5e8a0",
+                  "name" : "content-type",
+                  "value" : "application/json"
+                }
+              ],
+              "statusCode" : 200
+            },
+            "responseCases" : [
+
+            ],
+            "route" : {
+              "kind" : "exact",
+              "value" : "/products"
+            }
+          },
+          {
+            "conditions" : {
+              "body" : [
+
+              ],
+              "headers" : [
+
+              ],
+              "query" : {
+                "exactValue" : "",
+                "mode" : "none",
+                "pairs" : [
+
+                ]
+              }
+            },
+            "id" : "72dc7aca-0154-4d13-9432-1f62dba5d7df",
+            "method" : "GET",
+            "mode" : "mock",
+            "name" : "Get product",
+            "response" : {
+              "body" : "{\n  \"id\" : \"p1\",\n  \"name\" : \"Espresso cup\",\n  \"price\" : 1200\n}",
+              "headers" : [
+                {
+                  "id" : "2d3291f9-4f65-4fde-8049-7e3624ecb356",
+                  "name" : "content-type",
+                  "value" : "application/json"
+                }
+              ],
+              "statusCode" : 200
+            },
+            "responseCases" : [
+
+            ],
+            "route" : {
+              "kind" : "parameter",
+              "value" : "/products/:id"
+            }
+          }
+        ],
+        "fallbackMode" : "strict",
+        "id" : "ec372f8c-2148-4b98-8623-3e6d4b09101a",
+        "name" : "Shop API",
+        "port" : 47861,
+        "upstreamBaseURL" : "https://api.shop.example.test"
+      }
+    ]
+  }
+}
